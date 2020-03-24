@@ -1,34 +1,42 @@
 const fs = require('fs');
-let app = require('express')();
-let http = require('http').createServer(app);
-let io = require('socket.io')(http);
+const app = require('express')();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 
-app.get('/',function(req,res) {
+let file_openable = true;
+
+
+function getFileLock() {
+    while (! file_openable) {}
+    file_openable = false;
+    console.log('opening');
+}
+
+function returnFileLock() {
+    file_openable = true;
+    console.log('closing');
+}
+
+app.get('/', (req,res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-io.on('connection', function(socket) {
+io.on('connection', socket => {
     socket.on('howmany', (req,res) => {
-        fs.readFile('bars.txt',(err,data) => {
-            if (! err) {
-                data = data.toString();
-                io.emit('bar-count',data);
-            } else {
-                console.error(err);
-            }
-        });
+        getFileLock();
+        const data = fs.readFileSync('bars.txt');
+        const string_data = data.toString();
+        io.emit('bar-count', string_data);
+        returnFileLock();
     });
     socket.on('moar', (req,res) => {
-        fs.readFile('bars.txt',(err,data) => {
-            if (! err) {
-                let val = parseInt(data);
-                let new_val = (++val).toString();
-                fs.writeFile('bars.txt',new_val,err => console.error(err));
-                io.emit('bar-count',new_val);
-            } else {
-                console.error(err);
-            }
-        });
+        getFileLock();
+        const data = fs.readFileSync('bars.txt');
+        const val = parseInt(data) + 1;
+        const new_val = val.toString();
+        fs.writeFileSync('bars.txt', new_val);
+        io.emit('bar-count', new_val);
+        returnFileLock();
     });
 });
 
