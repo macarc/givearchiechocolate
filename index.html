@@ -1,0 +1,53 @@
+<head>
+    <title>Give Me Chocolate</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap');
+        * {
+          font-family: Montserrat;
+          margin-left: auto;
+          margin-right: auto;
+          text-align: center;
+          background: #111133;
+          color: white;
+        }
+
+        p {
+          margin-top: 40vh
+        }
+
+        span {
+          color: green;
+          font-weight: bold;
+        }
+
+        button {
+          background: #333377;
+          border: none;
+          padding: 1.5rem;
+          border-radius: .5rem;
+          font-size: 1rem;
+          margin-top: 1rem;
+          cursor: pointer;
+          max-width: 90vw;
+        }
+    </style>
+</head>
+<body>
+    <p>Archie has <span id="bar-count"></span> virtual chocolate bars.</p>
+    <button onclick="giveChocolate()">Give Archie a Virtual Chocolate Bar</button>
+    <script>
+        let socket = io();
+        socket.on('connect', function() {
+            socket.emit('howmany');
+            socket.on('bar-count', function(data) {
+                console.log(data);
+                document.querySelector('#bar-count').innerHTML = data;
+            });
+        });
+        function giveChocolate() {
+            socket.emit('moar');
+        }
+    </script>
+</body>
